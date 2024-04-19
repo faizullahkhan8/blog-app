@@ -1,0 +1,26 @@
+.comment {
+    border: 1px solid #fff;
+    margin: 10px 0;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+}
+
+.header_det {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header_det p {
+    color: #3861fb;
+}
+
+.commentText {
+    font-size: 1.1rem;
+    margin: 5px;
+}

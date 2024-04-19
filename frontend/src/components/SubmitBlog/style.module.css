@@ -1,0 +1,87 @@
+.wrapper {
+  margin: 0 auto;
+  width: 90vw;
+  height: calc(100vh-200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.header {
+  font-size: 48px;
+  font-weight: bold;
+  width: inherit;
+  text-align: center;
+  margin: 50px 0;
+}
+
+.wrapper .content {
+  padding: 18px 30px;
+  margin: 15px;
+  width: 60%;
+  outline: none;
+  border-radius: 10px;
+  border: 1px solid #fff;
+  font-size: 20px;
+  min-height: 200px;
+}
+
+.photoPrompt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  font-size: 20px;
+  width: 60%;
+}
+
+.photoPrompt label {
+  cursor: pointer;
+}
+
+.photoPrompt label:hover {
+  color: #3861fb;
+}
+
+.icon {
+  font-size: 50px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.icon:hover {
+  background-color: #3861fb;
+}
+
+.label {
+  margin: 1rem 0;
+  text-transform: capitalize;
+  border: 1px solid #fff;
+  padding: 10px;
+  border-radius: 10px;
+  background: #3861fb;
+  font-weight: bold;
+}
+
+.label:hover {
+  background: transparent;
+}
+
+.submit {
+  background-color: #3861fb;
+  color: #fff;
+  border: none;
+  outline: none;
+  width: 30%;
+  border-radius: 10px;
+  padding: 15px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.submit:hover,
+.submit:disabled {
+  background-color: #829dff;
+}
