@@ -121,6 +121,17 @@ const postComment = async (data) => {
     return response;
 };
 
+const likeABlog = async (data) => {
+    let response;
+
+    try {
+        response = await api.put("/like", data);
+    } catch (error) {
+        return error;
+    }
+    return response;
+};
+
 const refresh = () => {
     let response;
     try {
@@ -144,4 +155,5 @@ export {
     getCommentsById,
     postComment,
     refresh,
+    likeABlog,
 };

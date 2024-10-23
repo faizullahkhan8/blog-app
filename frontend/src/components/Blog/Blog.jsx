@@ -1,20 +1,32 @@
 import style from "./style.module.css";
-import { getAllBlogs } from "../../API/internals";
+import { getAllBlogs, likeABlog } from "../../API/internals";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdComment, MdShare, MdThumbUp } from "react-icons/md";
-import { AiOutlineShareAlt } from "react-icons/ai";
+import { useSelector } from "react-redux";
 
 const Blog = () => {
     const navigate = useNavigate();
     const [blogs, setBlogs] = useState([]);
+    const [isLiked, setIsLiked] = useState(false);
+
+    const userId = useSelector((state) => state.userSlice._id);
 
     useEffect(() => {
         (async function () {
             const response = await getAllBlogs();
             setBlogs(response.data.blogsDTO);
         })();
-    }, []);
+    }, [isLiked]);
+
+    async function handleLike(blog) {
+        const data = { userId, blogId: blog.id };
+        const response = await likeABlog(data);
+
+        if (response.status === 200) {
+            setIsLiked((prev) => !prev);
+        }
+    }
 
     if (blogs.length === 0) {
         return (
@@ -23,8 +35,6 @@ const Blog = () => {
             </h1>
         );
     }
-
-    console.log(blogs);
 
     return (
         <div className={style.container}>
@@ -51,8 +61,40 @@ const Blog = () => {
                             }}
                         />
                         <div className={style.reaction}>
-                            <MdThumbUp />
-                            <MdComment />
+                            <div
+                                onClick={() => {
+                                    handleLike(blog);
+                                }}
+                                style={{
+                                    display: "flex",
+                                    gap: "10px",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <MdThumbUp
+                                    style={
+                                        blog.likes.some(
+                                            (id) => id === userId
+                                        ) && {
+                                            background: "blue",
+                                            borderRadius: "7px",
+                                            padding: "5px",
+                                        }
+                                    }
+                                />
+                                <p>{blog.likes.length}</p>
+                            </div>
+                            <div
+                                onClick={() => {
+                                    navigate(`/blog/${blog.id}`);
+                                }}
+                                className={style.comment}
+                            >
+                                <MdComment />
+                                <p>{blog.comments?.length}</p>
+                            </div>
                             <MdShare />
                         </div>
                     </div>

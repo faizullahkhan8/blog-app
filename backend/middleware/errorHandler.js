@@ -6,12 +6,12 @@ const errorHandler = (error, req, res, next) => {
 
     const { ValidationError } = error;
 
-    if (!ValidationError) {
-        status = error.status;
-        data.message = error.message;
+    // if (ValidationError) {
+    //     status = error.status;
+    //     data.message = error.message;
 
-        return res.status(status).json(data);
-    }
+    //     return res.status(status).json(data);
+    // }
 
     if (error.status) {
         status = error.status;

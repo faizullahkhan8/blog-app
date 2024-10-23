@@ -1,22 +1,25 @@
 .textInputWrapper {
-  display: flex;
-  flex-direction: column;
-  width: inherit;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    width: inherit;
+    align-items: center;
+
+    gap: 10px;
 }
 
 .textInputWrapper input {
-  padding: 18px 30px;
-  margin: 15px;
-  outline: none;
-  width: 30%;
-  border: 1px solid #fff;
-  border-radius: 10px;
-  font-size: 20px;
+    padding: 10px;
+
+    color: #000;
+
+    outline: none;
+    width: 30%;
+    border-radius: 10px;
+    font-size: 16px;
 }
 
 .errorMessage {
-  color: #de1b55;
-  text-align: center;
-  width: 30%;
+    color: #de1b55;
+    text-align: center;
+    width: 30%;
 }

@@ -6,6 +6,8 @@ class blogDetailDTO {
         this.authorName = blog.author.name;
         this.authorUserName = blog.author.username;
         this.createdAt = blog.createdAt;
+        this.comments = blog.comments;
+        this.likes = blog.likes;
     }
 }
 module.exports = blogDetailDTO;

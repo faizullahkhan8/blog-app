@@ -192,7 +192,7 @@ const blogController = {
             }
 
             // delete commenets
-            await commentModel.deleteMany({ blogID: id });
+            await commentModel.deleteMany({ blog: id });
 
             return res.status(200).json("blog deleted succesfully");
         } catch (error) {

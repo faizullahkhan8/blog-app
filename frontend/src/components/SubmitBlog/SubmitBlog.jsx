@@ -51,26 +51,27 @@ const SubmitBlog = () => {
                 style={{ width: "60%" }}
             />
             <div className={style.photoPrompt}>
-                <p>Choose a Photo</p>
+                <label htmlFor="photo">
+                    <p>Choose a Photo</p>
+                </label>
                 <label htmlFor="photo">
                     <MdPhotoCamera className={style.icon} />
                 </label>
+                <input
+                    type="file"
+                    name="photo"
+                    accept="image/jpg,image/jpeg,image/png"
+                    onChange={getPhoto}
+                    id="photo"
+                    hidden
+                />
             </div>
-
-            <input
-                type="file"
-                name="photo"
-                accept="image/jpg,image/jpeg,image/png"
-                onChange={getPhoto}
-                id="photo"
-                hidden
-            />
 
             <img
                 src={photo}
                 alt="Selected Avater"
                 className="rounded border-white border my-5"
-                style={{ width: "50%" }}
+                style={{ width: "100px" }}
             />
             <button
                 className={style.submit}

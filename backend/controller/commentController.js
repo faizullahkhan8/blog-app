@@ -1,37 +1,52 @@
 const Joi = require("joi");
 const CommentModel = require("../model/comment");
 const CommentDTO = require("../DTO/commentDTO");
-const blog = require("../model/blog");
+const blogModel = require("../model/blog");
 
 const commentController = {
     async createComment(req, res, next) {
-        // verify data
-        const createCommentSchema = Joi.object({
-            content: Joi.string().required(),
-            author: Joi.string().required(),
-            blog: Joi.string().required(),
-        });
+        try {
+            // verify data
+            const createCommentSchema = Joi.object({
+                content: Joi.string().required(),
+                author: Joi.string().required(),
+                blogId: Joi.string().required(),
+            });
 
-        const { error } = createCommentSchema.validate(req.body);
+            const { error } = createCommentSchema.validate(req.body);
 
-        if (error) {
+            if (error) {
+                return next(error);
+            }
+
+            const { content, author, blogId } = req.body;
+
+            const existingBlog = await blogModel.findOne({ _id: blogId });
+
+            if (!existingBlog) {
+                const error = new Error("Blog not found!");
+                return next(error);
+            }
+
+            const newComment = new CommentModel({
+                author,
+                blog: blogId,
+                content,
+            });
+
+            existingBlog.comments.push(newComment._id);
+
+            await newComment.save();
+            await existingBlog.save();
+
+            return res.status(201).json({ message: "comment created" });
+        } catch (error) {
+            console.log("ERROR IN CREATE COMMENT");
             return next(error);
         }
-
-        const { content, author, blog } = req.body;
-
-        const commentToBeSave = new CommentModel({
-            content,
-            author,
-            blog,
-        });
-
-        await commentToBeSave.save();
-
-        return res.status(201).json({ message: "comment created" });
     },
 
-    async getById(req, res, next) {
+    async getCommentsByBlog(req, res, next) {
         const getByIdSchema = new Joi.object({
             blogID: Joi.required(),
         });
@@ -59,46 +74,47 @@ const commentController = {
             .json({ length: commentDTO.length, data: commentDTO });
     },
 
-    // async getAll(req, res, next) {
-    //   // const getAllSchema = new Joi.object({
-    //   //   BlogID: Joi.string().required(),
-    //   // });
+    async reactABlog(req, res, next) {
+        const reactABlogSchema = new Joi.object({
+            blogId: Joi.string().required(),
+            userId: Joi.string().required(),
+        });
 
-    //   // const { error } = getAllSchema.validate(req.params);
+        const { error } = reactABlogSchema.validate(req.body);
 
-    //   // if (error) {
-    //   //   return next(error);
-    //   // }
+        const { blogId, userId } = req.body;
 
-    //   let comments;
-    //   const { blogID } = req.params;
+        if (error) {
+            return next(error);
+        }
 
-    //   try {
-    //     comments = await CommentModel.find({ blog: blogID });
-    //   } catch (error) {
-    //     return next(error);
-    //   }
+        const existingBlog = await blogModel.findOne({ _id: blogId });
 
-    //   let commentDTO = [];
+        if (!existingBlog) {
+            const error = new Error("Blog not found!").status(404);
+            return next(error);
+        }
 
-    //   comments.forEach((element, index) => {
-    //     commentDTO[index] = new CommentDTO(element);
-    //   });
+        const userIdIdx = existingBlog.likes.findIndex((id) => id === userId);
 
-    //   return res
-    //     .status(200)
-    //     .json({ length: comments.length, comments: commentDTO });
-    // },
+        if (userIdIdx > -1) {
+            existingBlog.likes.splice(userIdIdx, 1);
 
-    async updateComment(req, res, next) {
-        const updateCommentSchema = new Joi.object({
-            id: Joi.string().required(),
-            blog: Joi.string(),
-            author: Joi.string().required(),
+            await existingBlog.save();
+
+            return res.status(200).json({
+                message: "Blog unliked successfully",
+            });
+        }
+
+        existingBlog.likes.push(userId);
+
+        await existingBlog.save();
+
+        return res.status(200).json({
+            message: "blog liked successfully",
         });
     },
-
-    async deleteComment(req, res, next) {},
 };
 
 module.exports = commentController;

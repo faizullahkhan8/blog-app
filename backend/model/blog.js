@@ -11,6 +11,12 @@ const blogShema = new Schema(
             required: true,
         },
         photoPath: { type: String, required: true },
+        comments: {
+            type: Array,
+        },
+        likes: {
+            type: Array,
+        },
     },
     {
         timestamps: true,

@@ -1,13 +1,17 @@
 .comment {
-    border: 1px solid #fff;
     margin: 10px 0;
     border-radius: 10px;
-    padding: 5px;
+    padding: 2px 5px;
+
+    background: #3861fb;
+    color: white;
 }
 
 .header {
     display: flex;
     flex-direction: column;
+
+    background: transparent;
 }
 
 .header_det {
@@ -17,10 +21,10 @@
 }
 
 .header_det p {
-    color: #3861fb;
+    color: black;
 }
 
 .commentText {
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin: 5px;
 }

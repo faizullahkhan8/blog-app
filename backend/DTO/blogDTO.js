@@ -6,6 +6,8 @@ class blogDTO {
         this.userId = blog.author._id;
         this.username = blog.author.username;
         this.createdAt = blog.createdAt;
+        this.comments = blog.comments;
+        this.likes = blog.likes;
     }
 }
 

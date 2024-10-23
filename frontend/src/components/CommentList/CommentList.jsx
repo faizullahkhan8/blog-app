@@ -7,10 +7,10 @@ const CommentList = ({ comments }) => {
     });
 
     return (
-        <div className={style.commentListWrapper}>
+        <>
             {comments.map((comment) => {
                 return (
-                    <div className={style.comment}>
+                    <div className={style.comment} key={comment._id}>
                         <div className={style.header}>
                             <div className={style.header_det}>
                                 <p className={style.author}>
@@ -25,7 +25,7 @@ const CommentList = ({ comments }) => {
                     </div>
                 );
             })}
-        </div>
+        </>
     );
 };
 

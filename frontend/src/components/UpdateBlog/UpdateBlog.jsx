@@ -27,7 +27,7 @@ const UpdateBlog = () => {
 
         setTitle("");
         setPhoto("");
-    }, []);
+    }, [blogID]);
 
     const getPhoto = (e) => {
         const file = e.target.files[0];
@@ -70,7 +70,7 @@ const UpdateBlog = () => {
 
     return (
         <div className={style.wrapper}>
-            <div className={style.header}> Crea a Blog </div>
+            <div className={style.header}> Update Blog </div>
             <TextInput
                 type="text"
                 name="title"
@@ -80,7 +80,9 @@ const UpdateBlog = () => {
                 style={{ width: "60%" }}
             />
             <div className={style.photoPrompt}>
-                <p>Choose a Photo</p>
+                <label htmlFor="photo">
+                    <p>Choose a Photo</p>
+                </label>
                 <label htmlFor="photo">
                     <MdPhotoCamera className={style.icon} />
                 </label>
@@ -99,10 +101,10 @@ const UpdateBlog = () => {
                 src={photo}
                 alt="Selected Avater"
                 className="rounded border-white border my-5"
-                style={{ width: "50%" }}
+                style={{ width: "100px" }}
             />
             <button className={style.submit} onClick={handleUpdate}>
-                Submit
+                Update
             </button>
         </div>
     );

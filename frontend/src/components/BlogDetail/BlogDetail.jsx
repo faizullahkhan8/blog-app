@@ -49,9 +49,11 @@ const BlogDetail = () => {
             }
         })();
 
-        setBlog([]);
-        setComments([]);
-    }, [reload]);
+        return () => {
+            setBlog([]);
+            setComments([]);
+        };
+    }, [blogId, username]);
 
     const blogDeleteHandler = async () => {
         const response = await deleteBlog(blogId);
@@ -66,7 +68,7 @@ const BlogDetail = () => {
     const postCommentHandler = async () => {
         const data = {
             author: userId,
-            blog: blogId,
+            blogId,
             content: newComment,
         };
 
@@ -87,12 +89,7 @@ const BlogDetail = () => {
                     {" on " + new Date(blog.createdAt).toDateString()}
                 </div>
                 <div className={style.image}>
-                    <img
-                        src={blog.photo}
-                        width={500}
-                        height={500}
-                        alt="blogImage"
-                    />
+                    <img src={blog.photo} width={500} alt="blogImage" />
                 </div>
                 {isBlogOwner && (
                     <div className={style.controller}>

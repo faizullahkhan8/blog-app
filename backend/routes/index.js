@@ -42,6 +42,13 @@ router.delete("/blog/:id", authMiddleware, blogController.delete);
 router.post("/comment", authMiddleware, commentController.createComment);
 
 // read by id
-router.get("/comment/:blogID", authMiddleware, commentController.getById);
+router.get(
+    "/comment/:blogID",
+    authMiddleware,
+    commentController.getCommentsByBlog
+);
+
+// Like
+router.put("/like", authMiddleware, commentController.reactABlog);
 
 module.exports = router;
