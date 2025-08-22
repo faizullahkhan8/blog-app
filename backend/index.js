@@ -22,10 +22,9 @@ app.use(router);
 
 app.use("/storage", express.static("storage"));
 
-DBConnection();
-
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server is listening on port ${PORT}!`);
+    await DBConnection();
 });

@@ -1,12 +1,16 @@
 const mongoose = require("mongoose");
-const { DB_CONNECTION } = require("../config/index");
-const DBConnection = () => {
+
+const DBConnection = async () => {
     try {
-        const conn = mongoose
-            .connect(DB_CONNECTION)
-            .then(() => console.log(`connected to database`));
+        await mongoose.connect(process.env.DB_CONNECTION, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000,
+        });
+        console.log("✅ Connected to MongoDB Atlas");
     } catch (error) {
-        console.log("error", error);
+        console.error("❌ MongoDB connection error:", error.message);
+        process.exit(1);
     }
 };
 
