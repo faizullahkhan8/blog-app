@@ -10,5 +10,4 @@ module.exports = {
     DB_CONNECTION,
     ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET,
-    BACKEND_SERVER_PATH,
 };
