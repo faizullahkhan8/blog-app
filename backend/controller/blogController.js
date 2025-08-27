@@ -1,59 +1,45 @@
 const Joi = require("joi");
-const fs = require("fs");
 const blogModel = require("../model/blog");
 const commentModel = require("../model/comment");
-const { BACKEND_SERVER_PATH } = require("../config/index");
 const blogDTO = require("../DTO/blogDTO");
 const blogDetailDTO = require("../DTO/blogDetailDTO");
-const userModel = require("../model/user");
+const imagekit = require("../config/ImageKit");
 const blogController = {
     async create(req, res, next) {
-        // verify req.body
         const createBlogSchema = Joi.object({
             title: Joi.string().required(),
             author: Joi.string().required(),
-            photo: Joi.string().required(),
+            photo: Joi.string().required(), // base64 string
         });
 
         const { error } = createBlogSchema.validate(req.body);
-
-        if (error) {
-            return next(error);
-        }
+        if (error) return next(error);
 
         const { title, author, photo } = req.body;
 
-        // read as buffer
-        const buffer = Buffer.from(
-            photo.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""),
-            "base64"
-        );
-
-        // handle photo storage and naming
-        const imagePath = `${Date.now()}-${author}.png`;
-
-        // save locally
         try {
-            fs.writeFileSync(`storage/${imagePath}`, buffer);
-        } catch (error) {
-            return next(error);
+            // Upload base64 directly to ImageKit
+            const uploadResponse = await imagekit.upload({
+                file: photo, // base64 string
+                fileName: `${Date.now()}-${author}.png`,
+                folder: "/blogs", // optional folder
+            });
+
+            // Save blog with ImageKit URL
+            const newBlog = new blogModel({
+                title,
+                author,
+                photoPath: uploadResponse.url, // ✅ CDN URL
+            });
+
+            await newBlog.save();
+
+            const blog = new blogDTO(newBlog);
+            return res.status(201).json({ blog });
+        } catch (err) {
+            return next(err);
         }
-
-        // add to db
-        const newBlog = new blogModel({
-            title,
-            author,
-            photoPath: `${BACKEND_SERVER_PATH}/storage/${imagePath}`,
-        });
-
-        await newBlog.save();
-
-        // return response
-        const blog = new blogDTO(newBlog);
-
-        return res.status(201).json({ blog });
     },
-
     async readAll(req, res, next) {
         try {
             const blogs = await blogModel.find({}).populate("author");
@@ -104,97 +90,101 @@ const blogController = {
 
     async update(req, res, next) {
         try {
-            // validate blog shema
-            const updateBlogSchema = new Joi.object({
+            // validate schema
+            const updateBlogSchema = Joi.object({
                 title: Joi.string().required(),
                 author: Joi.string().required(),
                 blogID: Joi.string().required(),
-                photo: Joi.string(),
+                photo: Joi.string().optional(), // base64 encoded image
             });
 
             const { error } = updateBlogSchema.validate(req.body);
-
-            if (error) {
-                return next(error);
-            }
+            if (error) return next(error);
 
             const { title, author, blogID, photo } = req.body;
 
             const blog = await blogModel.findOne({ _id: blogID });
+            if (!blog)
+                return res.status(404).json({ message: "Blog not found" });
 
+            let updatedFields = { title, author };
+
+            // handle new photo
             if (photo) {
-                var previousPhoto = blog.photoPath;
-                previousPhoto = previousPhoto.split("/").at(-1);
-
-                //delete prveious photo
-                fs.unlink(`storage/${previousPhoto}`);
-
-                // save new photo
-
-                // read as buffer
-                const buffer = Buffer.from(
-                    photo.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""),
-                    "base64"
-                );
-
-                // handle photo storage and naming
-                const imagePath = `${Date.now()}-${author}.png`;
-
-                // save locally
-                try {
-                    fs.writeFileSync(`storage/${imagePath}`, buffer);
-                } catch (error) {
-                    return next(error);
+                // if blog had an old image on ImageKit, delete it
+                if (blog.photoPath && blog.photoFileId) {
+                    try {
+                        await imagekit.deleteFile(blog.photoFileId);
+                    } catch (err) {
+                        console.warn(
+                            "Failed to delete old image:",
+                            err.message
+                        );
+                    }
                 }
 
-                // add to db
-                const updateBlog = await blogModel.updateOne(
-                    { _id: blogID },
-                    {
-                        title,
-                        author,
-                        photoPath: `${BACKEND_SERVER_PATH}/storage/${imagePath}`,
-                    }
-                );
-                return res.status(201).json({ message: "updated succesfully" });
-            } else {
-                const updateBlog = await blogModel.updateOne(
-                    { _id: blogID },
-                    { title }
-                );
+                // upload new photo to ImageKit
+                const uploadResponse = await imagekit.upload({
+                    file: photo, // base64 image string
+                    fileName: `${Date.now()}-${author}.png`,
+                    folder: "/blogs",
+                });
 
-                return res.status(201).json({ updateBlog });
+                updatedFields.photoPath = uploadResponse.url; // new URL
+                updatedFields.photoFileId = uploadResponse.fileId; // store fileId for deletion later
             }
+
+            await blogModel.updateOne({ _id: blogID }, updatedFields);
+
+            return res
+                .status(200)
+                .json({ message: "Blog updated successfully" });
         } catch (error) {
             return next(error);
         }
     },
 
     async delete(req, res, next) {
-        // validate blogId
         try {
-            const delelteBlogSchema = new Joi.object({
+            // validate blogId
+            const deleteBlogSchema = Joi.object({
                 id: Joi.string().required(),
             });
 
-            const { error } = delelteBlogSchema.validate(req.params);
+            const { error } = deleteBlogSchema.validate(req.params);
+            if (error) return next(error);
 
-            if (error) {
-                return next(error);
+            const { id } = req.params;
+
+            // find blog first
+            const blog = await blogModel.findById(id);
+            if (!blog) {
+                return res
+                    .status(404)
+                    .json({ message: "Blog not found or already deleted" });
+            }
+
+            // delete blog image from ImageKit if exists
+            if (blog.photoFileId) {
+                try {
+                    await imagekit.deleteFile(blog.photoFileId);
+                } catch (err) {
+                    console.warn(
+                        "Failed to delete image from ImageKit:",
+                        err.message
+                    );
+                }
             }
 
             // delete blog
-            const { id } = req.params;
-            const blog = await blogModel.deleteOne({ _id: id });
+            await blogModel.deleteOne({ _id: id });
 
-            if (!blog) {
-                return res.status(200).json("blog already deleted");
-            }
-
-            // delete commenets
+            // delete associated comments
             await commentModel.deleteMany({ blog: id });
 
-            return res.status(200).json("blog deleted succesfully");
+            return res
+                .status(200)
+                .json({ message: "Blog deleted successfully" });
         } catch (error) {
             return next(error);
         }

@@ -10,75 +10,80 @@ import {
 } from "../../API/internals";
 
 import CommentList from "../CommentList/CommentList";
-
 import style from "./style.module.css";
 
 const BlogDetail = () => {
     const navigate = useNavigate();
-    // useSelector((state)=>state.userSlice.id)
-
-    const params = useParams();
-    const blogId = params.id;
+    const { id: blogId } = useParams();
 
     const username = useSelector((state) => state.userSlice.username);
-
     const userId = useSelector((state) => state.userSlice._id);
 
-    const [blog, setBlog] = useState([]);
-
+    const [blog, setBlog] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
-
     const [isBlogOwner, setIsBlogOwner] = useState(false);
-    const [reload, setReload] = useState(false);
 
-    useEffect(() => {
-        let response;
-        (async function () {
-            response = await BlogById(blogId);
-            if (response.status === 200) {
-                setBlog(response.data.singleBlogDTO);
+    // fetch blog + comments
+    const fetchData = async () => {
+        try {
+            const blogRes = await BlogById(blogId);
+            if (blogRes.status === 200) {
+                setBlog(blogRes.data.singleBlogDTO);
                 setIsBlogOwner(
-                    username === response.data.singleBlogDTO.authorUserName
+                    username === blogRes.data.singleBlogDTO.authorUserName
                 );
             }
 
-            response = await getCommentsById(blogId);
-            if (response.status === 200) {
-                setComments(response.data.data);
+            const commentsRes = await getCommentsById(blogId);
+            if (commentsRes.status === 200) {
+                setComments(commentsRes.data.data || []);
             }
-        })();
+        } catch (err) {
+            console.error("Error fetching blog or comments", err);
+        }
+    };
 
+    useEffect(() => {
+        fetchData();
         return () => {
-            setBlog([]);
+            setBlog(null);
             setComments([]);
         };
     }, [blogId, username]);
 
     const blogDeleteHandler = async () => {
-        const response = await deleteBlog(blogId);
-
-        console.log(response);
-
-        if (response.status === 200) {
-            navigate("/blogs");
+        try {
+            const response = await deleteBlog(blogId);
+            if (response.status === 200) {
+                navigate("/blogs");
+            }
+        } catch (err) {
+            console.error("Delete failed", err);
         }
     };
 
     const postCommentHandler = async () => {
+        if (!newComment.trim()) return;
+
         const data = {
             author: userId,
             blogId,
             content: newComment,
         };
 
-        const response = await postComment(data);
-
-        if (response.status === 201) {
-            setNewComment("");
-            setReload(!reload);
+        try {
+            const response = await postComment(data);
+            if (response.status === 201) {
+                setNewComment("");
+                fetchData(); // reload fresh comments after posting
+            }
+        } catch (err) {
+            console.error("Comment post failed", err);
         }
     };
+
+    if (!blog) return <div>Loading...</div>;
 
     return (
         <div className={style.detailWrapper}>
@@ -91,13 +96,12 @@ const BlogDetail = () => {
                 <div className={style.image}>
                     <img src={blog.photo} width={500} alt="blogImage" />
                 </div>
+
                 {isBlogOwner && (
                     <div className={style.controller}>
                         <button
                             className={style.edit}
-                            onClick={() => {
-                                navigate(`/blog/edit/${blogId}`);
-                            }}
+                            onClick={() => navigate(`/blog/edit/${blogId}`)}
                         >
                             Edit
                         </button>
@@ -110,15 +114,17 @@ const BlogDetail = () => {
                     </div>
                 )}
             </div>
+
             <div className={style.right}>
                 <div className={style.commentsWrapper}>
-                    {!comments ? (
-                        "No Comment Yet"
-                    ) : (
-                        <div className={style.commentList}>
+                    <div className={style.commentList}>
+                        {comments.length === 0 ? (
+                            <p>No comments yet</p>
+                        ) : (
                             <CommentList comments={comments} />
-                        </div>
-                    )}
+                        )}
+                    </div>
+
                     <div className={style.postComment}>
                         <input
                             type="text"

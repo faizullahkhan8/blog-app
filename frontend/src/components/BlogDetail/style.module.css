@@ -10,10 +10,9 @@
 
 .left {
     display: flex;
-    justify-content: space-evenly;
     flex-direction: column;
-
-    gap: 5px;
+    justify-content: flex-start;
+    gap: 15px;
 
     width: 40%;
     padding: 25px 0;
@@ -36,46 +35,69 @@
 
 .image {
     width: 100%;
-    height: 100%;
+    margin-bottom: 1rem; /* spacing under the image */
 }
 
 .image img {
+    display: block; /* ensures no inline gap */
     width: 100%;
-    height: 350px;
+    max-height: 350px; /* don’t force full height */
     object-fit: contain;
+    position: relative;
+    z-index: 1; /* stays below controller */
 }
 
 .controller {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     margin-top: 20px;
     width: 100%;
     gap: 1rem;
     padding: 10px 20px;
+
+    position: relative;
+    z-index: 10; /* keeps buttons above image */
+}
+
+.controller button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 2rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .edit {
-    width: 5rem;
-    height: 2rem;
-    border-radius: 10px;
     background: #3861fb;
 }
+
+.edit:hover {
+    background: #274adf;
+    transform: scale(1.05);
+}
+
 .delete {
-    width: 5rem;
-    height: 2rem;
-    border-radius: 10px;
     background: #ff0011;
+}
+
+.delete:hover {
+    background: #cc000e;
+    transform: scale(1.05);
 }
 
 .right {
     display: flex;
-
     flex-direction: column;
-
     padding: 10px;
-
     flex: 1;
-
     width: 100%;
 }
 
@@ -85,13 +107,12 @@
     justify-content: center;
     flex-direction: column;
     gap: 1rem;
-
     width: 100%;
     height: inherit;
 }
 
 .commentList {
-    overflow-y: scroll;
+    overflow-y: auto;
     width: 100%;
     height: 65vh;
     padding-right: 10px;
@@ -105,6 +126,7 @@
     border-radius: 7px;
     background: white;
 }
+
 .commentList::-webkit-scrollbar-thumb {
     background: #3861fb;
     border-radius: 7px;
@@ -120,7 +142,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     gap: 5px;
 }
 
@@ -133,10 +154,19 @@
 }
 
 .postComment button {
-    border: 1px solid #fff;
+    border: none;
     padding: 10px;
     border-radius: 10px;
     width: 7rem;
     outline: none;
     background: #3861fb;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.postComment button:hover {
+    background: #274adf;
+    transform: scale(1.05);
 }
