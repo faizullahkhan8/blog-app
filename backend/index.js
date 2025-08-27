@@ -12,7 +12,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(
     cors({
-        origin: "http://localhost:3000",
+        origin: "https://blogbook.surge.sh",
         methods: ["GET", "POST", "DELETE", "PUT"],
         credentials: true,
     })
