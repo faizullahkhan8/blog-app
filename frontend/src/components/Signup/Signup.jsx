@@ -11,125 +11,130 @@ import { setUser } from "../../store/userSlice";
 const Signup = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [error, setError] = useState();
-    const [laoding, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSignUp = async () => {
-        let response;
+    const handleSignUp = async (values) => {
         const data = {
             name: values.name,
             username: values.username,
             email: values.email,
             password: values.password,
         };
+
         try {
             setLoading(true);
-            response = await signUp(data);
-        } catch (error) {
-            console.log(response);
+            const response = await signUp(data);
+
+            if (response.status === 201) {
+                dispatch(
+                    setUser({
+                        _id: response.data.user._id,
+                        email: response.data.user.email,
+                        username: response.data.user.username,
+                        auth: response.data.auth,
+                    })
+                );
+                navigate("/");
+            }
+        } catch (err) {
+            if (err.code === "ERR_BAD_REQUEST") {
+                setError(err.response?.data?.message || "Invalid details");
+            } else {
+                setError("Something went wrong, please try again.");
+            }
         } finally {
             setLoading(false);
         }
-
-        if (response.status === 201) {
-            dispatch(
-                setUser({
-                    _id: response.data.user._id,
-                    email: response.data.user.email,
-                    username: response.data.user.username,
-                    auth: response.data.auth,
-                })
-            );
-
-            navigate("/");
-        } else if (response.code === "ERR_BAD_REQUEST") {
-            setError(response.response.data.message);
-        }
     };
 
-    const { values, handleBlur, handleChange, errors } = useFormik({
-        initialValues: {
-            name: "",
-            username: "",
-            email: "",
-            password: "",
-            confirmPassword: "",
-        },
-        validationSchema: SignupSchema,
-    });
+    const { values, handleBlur, handleChange, errors, handleSubmit } =
+        useFormik({
+            initialValues: {
+                name: "",
+                username: "",
+                email: "",
+                password: "",
+                confirmPassword: "",
+            },
+            validationSchema: SignupSchema,
+            onSubmit: handleSignUp,
+        });
+
     return (
         <div className={style.loginWrapper}>
             <div className={style.loginHeader}>Register your account</div>
-            <TextInput
-                type="text"
-                value={values.name}
-                name="name"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.name}
-                placeholder="Name"
-            />
-            <TextInput
-                type="text"
-                value={values.username}
-                name="username"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.username}
-                placeholder="Username"
-            />
-            <TextInput
-                type="text"
-                value={values.email}
-                name="email"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.email}
-                placeholder="Email"
-            />
-            <TextInput
-                type="password"
-                value={values.password}
-                name="password"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.password}
-                placeholder="Password"
-            />
-            <TextInput
-                type="password"
-                value={values.confirmPassword}
-                name="confirmPassword"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.confirmPassword}
-                placeholder="Confirm password"
-            />
-            {error !== "" ? <p className="text-red-600">{error}</p> : ""}
-            <button
-                className={style.logInButton}
-                onClick={handleSignUp}
-                disabled={
-                    !values.name ||
-                    !values.username ||
-                    !values.email ||
-                    !values.password ||
-                    errors.name ||
-                    errors.username ||
-                    errors.email ||
-                    errors.password ||
-                    errors.confirmPassword
-                }
-            >
-                {laoding ? "Signing Up..." : "Sign Up"}
-            </button>
-            <span>
+            <form onSubmit={handleSubmit} className={style.form}>
+                <TextInput
+                    type="text"
+                    value={values.name}
+                    name="name"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.name}
+                    placeholder="Name"
+                />
+                <TextInput
+                    type="text"
+                    value={values.username}
+                    name="username"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.username}
+                    placeholder="Username"
+                />
+                <TextInput
+                    type="text"
+                    value={values.email}
+                    name="email"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.email}
+                    placeholder="Email"
+                />
+                <TextInput
+                    type="password"
+                    value={values.password}
+                    name="password"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.password}
+                    placeholder="Password"
+                />
+                <TextInput
+                    type="password"
+                    value={values.confirmPassword}
+                    name="confirmPassword"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.confirmPassword}
+                    placeholder="Confirm Password"
+                />
+                {error && <p className={style.errorText}>{error}</p>}
+                <button
+                    type="submit"
+                    className={style.logInButton}
+                    disabled={
+                        loading ||
+                        !values.name ||
+                        !values.username ||
+                        !values.email ||
+                        !values.password ||
+                        errors.name ||
+                        errors.username ||
+                        errors.email ||
+                        errors.password ||
+                        errors.confirmPassword
+                    }
+                >
+                    {loading ? "Signing Up..." : "Sign Up"}
+                </button>
+            </form>
+            <span className={style.registerText}>
                 Already have an account?
                 <button
                     className={style.createAccount}
-                    onClick={() => {
-                        navigate("/LogIn");
-                    }}
+                    onClick={() => navigate("/logIn")}
                 >
                     Login
                 </button>

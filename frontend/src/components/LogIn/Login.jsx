@@ -12,22 +12,20 @@ const Login = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [error, setError] = useState("");
-    const [laoding, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
+    const handleLogin = async (values) => {
         const data = {
             username: values.username,
             password: values.password,
         };
 
         try {
-            setLoading(true); // start loading
+            setLoading(true);
 
             const response = await login(data);
-            console.log(response);
 
             if (response?.status === 200) {
-                // 1. setUser
                 const user = {
                     _id: response.data.userDTO._id,
                     email: response.data.userDTO.email,
@@ -35,76 +33,78 @@ const Login = () => {
                     auth: response.data.auth,
                 };
                 dispatch(setUser(user));
-
-                // 2. redirect -> home page
                 navigate("/");
-            } else if (response?.code === "ERR_BAD_REQUEST") {
-                setError(
-                    response.response?.data?.message || "Invalid credentials"
-                );
-            } else if (response?.code === "ERR_CONNECTION_REFUSED") {
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+
+            if (err.code === "ERR_BAD_REQUEST") {
+                setError(err.response?.data?.message || "Invalid credentials");
+            } else if (err.code === "ERR_CONNECTION_REFUSED") {
                 setError("Server is down, please try again later");
             } else {
-                setError("Something went wrong, please try again.");
+                setError(
+                    err.response?.data?.message ||
+                        "Something went wrong, please try again."
+                );
             }
-        } catch (error) {
-            console.error("Login error:", error);
-            setError(
-                error.response?.data?.message || "Unexpected error occurred."
-            );
         } finally {
-            setLoading(false); // stop loading (always runs)
+            setLoading(false);
         }
     };
 
-    const { values, handleBlur, handleChange, errors } = useFormik({
-        initialValues: {
-            username: "",
-            password: "",
-        },
-        validationSchema: LoginSchema,
-    });
+    const { values, handleBlur, handleChange, errors, handleSubmit } =
+        useFormik({
+            initialValues: {
+                username: "",
+                password: "",
+            },
+            validationSchema: LoginSchema,
+            onSubmit: handleLogin,
+        });
+
     return (
         <div className={style.loginWrapper}>
             <div className={style.loginHeader}>Log in to your account</div>
-            <TextInput
-                type="text"
-                value={values.username}
-                name="username"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.username}
-                placeholder="Username"
-            />
-            <TextInput
-                type="password"
-                value={values.password}
-                name="password"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                error={errors.password}
-                placeholder="Password"
-            />
-            {error !== "" ? <p className="text-red-600">{error}</p> : ""}
-            <button
-                className={style.logInButton}
-                onClick={handleLogin}
-                disabled={
-                    !values.username ||
-                    !values.password ||
-                    errors.username ||
-                    errors.password
-                }
-            >
-                {laoding ? "Logging in..." : "Log In"}
-            </button>
-            <span>
-                Don't have an account?
+            <form onSubmit={handleSubmit} className={style.form}>
+                <TextInput
+                    type="text"
+                    value={values.username}
+                    name="username"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.username}
+                    placeholder="Username"
+                />
+                <TextInput
+                    type="password"
+                    value={values.password}
+                    name="password"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    error={errors.password}
+                    placeholder="Password"
+                />
+                {error && <p className={style.errorText}>{error}</p>}
+                <button
+                    type="submit"
+                    className={style.logInButton}
+                    disabled={
+                        loading ||
+                        !values.username ||
+                        !values.password ||
+                        errors.username ||
+                        errors.password
+                    }
+                >
+                    {loading ? "Logging in..." : "Log In"}
+                </button>
+            </form>
+            <span className={style.registerText}>
+                Don&apos;t have an account?
                 <button
                     className={style.createAccount}
-                    onClick={() => {
-                        navigate("/signUp");
-                    }}
+                    onClick={() => navigate("/signUp")}
                 >
                     Register
                 </button>

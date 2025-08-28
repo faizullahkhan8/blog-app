@@ -9,139 +9,259 @@ const api = axios.create({
     },
 });
 
-const login = async (data) => {
-    let response;
+// Cache configuration - shorter durations for dynamic content
+const CACHE_DURATION = {
+    BLOGS: 2 * 60 * 1000, // 2 minutes for blogs list
+    BLOG_DETAIL: 5 * 60 * 1000, // 5 minutes for individual blog
+    COMMENTS: 1 * 60 * 1000, // 1 minute for comments (more dynamic)
+};
 
+// Cache storage
+const cache = {
+    allBlogs: { data: null, timestamp: null },
+    blogDetails: new Map(), // blogId -> { data, timestamp }
+    comments: new Map(), // blogId -> { data, timestamp }
+};
+
+const isCacheValid = (cacheEntry, duration) => {
+    return (
+        cacheEntry &&
+        cacheEntry.data &&
+        cacheEntry.timestamp &&
+        Date.now() - cacheEntry.timestamp < duration
+    );
+};
+
+// Helper to invalidate related caches
+const invalidateRelatedCaches = () => {
+    cache.allBlogs = { data: null, timestamp: null };
+    cache.blogDetails.clear();
+    cache.comments.clear();
+};
+
+const login = async (data) => {
     try {
-        response = await api.post("/login", data);
+        const response = await api.post("/login", data);
+        // Clear caches on login (user-specific data might change)
+        invalidateRelatedCaches();
+        return response;
     } catch (error) {
         return error;
     }
-    return response;
 };
 
 const signUp = async (data) => {
-    let response;
-
     try {
-        response = await api.post("/register", data);
+        const response = await api.post("/register", data);
+        return response;
     } catch (error) {
         return error;
     }
-    return response;
 };
 
 const logOut = async () => {
-    let response;
-
     try {
-        response = await api.post("/logout");
+        const response = await api.post("/logout");
+        // Clear all caches on logout
+        invalidateRelatedCaches();
+        return response;
     } catch (error) {
         return error;
     }
-    return response;
 };
 
 const getAllBlogs = async () => {
-    let response;
+    // Check cache first
+    if (isCacheValid(cache.allBlogs, CACHE_DURATION.BLOGS)) {
+        console.log("Returning cached blogs");
+        return cache.allBlogs.data;
+    }
 
     try {
-        response = api.get("/blog/all");
+        console.log("Fetching fresh blogs data");
+        const response = await api.get("/blog/all");
+
+        // Update cache
+        cache.allBlogs = {
+            data: response,
+            timestamp: Date.now(),
+        };
+
+        return response;
     } catch (error) {
+        // Return stale cache if available
+        if (cache.allBlogs.data) {
+            console.log("API failed, returning stale cached blogs");
+            return cache.allBlogs.data;
+        }
         return error;
     }
-    return response;
 };
 
 const submitABlog = async (data) => {
-    let response;
-
     try {
-        response = await api.post("/blog", data);
+        const response = await api.post("/blog", data);
+        // Invalidate blogs cache since new blog was added
+        cache.allBlogs = { data: null, timestamp: null };
+        return response;
     } catch (error) {
         return error;
     }
-    return response;
 };
 
 const BlogById = async (id) => {
-    let response;
+    // Check cache for this specific blog
+    const cacheKey = id.toString();
+    const cachedBlog = cache.blogDetails.get(cacheKey);
+
+    if (isCacheValid(cachedBlog, CACHE_DURATION.BLOG_DETAIL)) {
+        console.log(`Returning cached blog ${id}`);
+        return cachedBlog.data;
+    }
 
     try {
-        response = await api.get(`/blog/${id}`);
+        console.log(`Fetching fresh blog ${id}`);
+        const response = await api.get(`/blog/${id}`);
+
+        // Update cache
+        cache.blogDetails.set(cacheKey, {
+            data: response,
+            timestamp: Date.now(),
+        });
+
+        return response;
     } catch (error) {
+        // Return stale cache if available
+        if (cachedBlog?.data) {
+            console.log(`API failed, returning stale cached blog ${id}`);
+            return cachedBlog.data;
+        }
         return error;
     }
-    return response;
 };
 
 const deleteBlog = async (id) => {
-    let response;
-
     try {
-        response = await api.delete(`/blog/${id}`);
+        const response = await api.delete(`/blog/${id}`);
+        // Invalidate related caches
+        cache.allBlogs = { data: null, timestamp: null };
+        cache.blogDetails.delete(id.toString());
+        cache.comments.delete(id.toString());
+        return response;
     } catch (error) {
         return error;
     }
-
-    return response;
 };
 
 const updateBlog = async (data) => {
-    let response;
-
     try {
-        response = await api.put("/blog", data);
+        const response = await api.put("/blog", data);
+        // Invalidate related caches
+        cache.allBlogs = { data: null, timestamp: null };
+        if (data.id) {
+            cache.blogDetails.delete(data.id.toString());
+        }
+        return response;
     } catch (error) {
         return error;
     }
-
-    return response;
 };
 
 const getCommentsById = async (id) => {
-    let response;
+    // Check cache for comments
+    const cacheKey = id.toString();
+    const cachedComments = cache.comments.get(cacheKey);
 
-    try {
-        response = await api.get(`/comment/${id}`, { validateStatus: false });
-    } catch (error) {
-        return error;
+    if (isCacheValid(cachedComments, CACHE_DURATION.COMMENTS)) {
+        console.log(`Returning cached comments for blog ${id}`);
+        return cachedComments.data;
     }
 
-    return response;
+    try {
+        console.log(`Fetching fresh comments for blog ${id}`);
+        const response = await api.get(`/comment/${id}`, {
+            validateStatus: false,
+        });
+
+        // Update cache
+        cache.comments.set(cacheKey, {
+            data: response,
+            timestamp: Date.now(),
+        });
+
+        return response;
+    } catch (error) {
+        // Return stale cache if available
+        if (cachedComments?.data) {
+            console.log(
+                `API failed, returning stale cached comments for blog ${id}`
+            );
+            return cachedComments.data;
+        }
+        return error;
+    }
 };
 
 const postComment = async (data) => {
-    let response;
-
     try {
-        response = await api.post("/comment", data);
+        const response = await api.post("/comment", data);
+        // Invalidate comments cache for this blog
+        if (data.blogId) {
+            cache.comments.delete(data.blogId.toString());
+        }
+        return response;
     } catch (error) {
         return error;
     }
-    return response;
 };
 
 const likeABlog = async (data) => {
-    let response;
-
     try {
-        response = await api.put("/like", data);
+        const response = await api.put("/like", data);
+        // Invalidate related caches since like count changed
+        cache.allBlogs = { data: null, timestamp: null };
+        if (data.blogId) {
+            cache.blogDetails.delete(data.blogId.toString());
+        }
+        return response;
     } catch (error) {
         return error;
     }
-    return response;
 };
 
-const refresh = () => {
-    let response;
+const refresh = async () => {
     try {
-        response = api.get("/refresh");
+        const response = await api.get("/refresh");
+        // Clear all caches on refresh
+        invalidateRelatedCaches();
+        return response;
     } catch (error) {
         return error;
     }
+};
 
-    return response;
+// Cache management utilities
+export const cacheUtils = {
+    clearAll: invalidateRelatedCaches,
+    clearBlogs: () => {
+        cache.allBlogs = { data: null, timestamp: null };
+    },
+    clearBlog: (id) => {
+        cache.blogDetails.delete(id.toString());
+    },
+    clearComments: (id) => {
+        cache.comments.delete(id.toString());
+    },
+    getCacheStatus: () => ({
+        allBlogs: {
+            cached: !!cache.allBlogs.data,
+            age: cache.allBlogs.timestamp
+                ? Date.now() - cache.allBlogs.timestamp
+                : null,
+        },
+        blogDetails: cache.blogDetails.size,
+        comments: cache.comments.size,
+    }),
 };
 
 export {

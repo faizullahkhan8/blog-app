@@ -1,31 +1,43 @@
 import style from "./style.module.css";
+// import { MessageCircle } from "lucide-react";
 
 const CommentList = ({ comments }) => {
-    let date;
-    comments.forEach((element, index) => {
-        date = new Date(comments[index].createdAt).toDateString();
-    });
+    if (!comments || comments.length === 0) {
+        return (
+            <p className={style.noComments}>
+                No comments yet. Be the first to share your thoughts!
+            </p>
+        );
+    }
 
     return (
-        <>
+        <div className={style.commentsList}>
             {comments.map((comment) => {
+                const date = new Date(comment.createdAt).toLocaleDateString(
+                    "en-US",
+                    {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                    }
+                );
+
                 return (
-                    <div className={style.comment} key={comment._id}>
-                        <div className={style.header}>
-                            <div className={style.header_det}>
-                                <p className={style.author}>
+                    <div className={style.commentCard} key={comment._id}>
+                        <div className={style.commentHeader}>
+                            <div className={style.authorInfo}>
+                                {/* <MessageCircle className={style.commentIcon} /> */}
+                                <span className={style.author}>
                                     @{comment.author}
-                                </p>
-                                <div className={style.date}>{date}</div>
+                                </span>
                             </div>
-                            <div className={style.commentText}>
-                                {comment.content}
-                            </div>
+                            <span className={style.date}>{date}</span>
                         </div>
+                        <p className={style.commentText}>{comment.content}</p>
                     </div>
                 );
             })}
-        </>
+        </div>
     );
 };
 

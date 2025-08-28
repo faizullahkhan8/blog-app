@@ -1,45 +1,109 @@
 .loginWrapper {
-  margin: 0 auto;
-  width: 80vw;
-  height: calc(100vh-200px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    margin: 0 auto;
+    width: 80vw;
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(20, 20, 20, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .loginHeader {
-  font-size: 48px;
-  font-weight: bold;
-  width: inherit;
-  text-align: center;
-  margin: 50px 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 2rem 0;
+    color: #fff;
+    background: linear-gradient(135deg, #3861fb, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.form {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .logInButton {
-  background-color: #3861fb;
-  color: #fff;
-  border: none;
-  outline: none;
-  width: 30%;
-  padding: 15px 30px;
-  cursor: pointer;
-  font-weight: bold;
-  margin: 10px;
-  margin-top: 30px;
-
-  border-radius: 10px;
+    background: linear-gradient(135deg, #3861fb, #4a69fc);
+    color: #fff;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 15px 30px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
 }
 
 .logInButton:disabled {
-  background-color: gray;
+    background-color: #aeafaf;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.logInButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2850eb, #3861fb);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(56, 97, 251, 0.3);
+}
+
+.errorText {
+    color: #ff4757;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.registerText {
+    margin-top: 2rem;
+    font-size: 1rem;
+    color: #ccc;
 }
 
 .createAccount {
-  margin-top: 50px;
-  margin-left: 10px;
-  margin-bottom: 2rem;
-  color: #16c784;
-  font-size: 18px;
-  cursor: pointer;
+    margin-left: 0.5rem;
+    color: #16c784;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.createAccount:hover {
+    color: #14b576;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .loginWrapper {
+        width: 95vw;
+        padding: 1.5rem;
+    }
+
+    .loginHeader {
+        font-size: 2rem;
+    }
+
+    .logInButton {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
 }

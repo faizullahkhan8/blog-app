@@ -1,25 +1,40 @@
 .textInputWrapper {
     display: flex;
     flex-direction: column;
-    width: inherit;
+    width: 100%; /* full width, parent controls container size */
     align-items: center;
-
-    gap: 10px;
+    gap: 8px;
 }
 
 .textInputWrapper input {
-    padding: 10px;
-
-    color: #000;
-
+    padding: 12px 16px;
+    width: 100%;
+    max-width: 400px; /* keeps consistent size */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
     outline: none;
-    width: 30%;
-    border-radius: 10px;
-    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+/* On focus → glow */
+.textInputWrapper input:focus {
+    border-color: #3861fb;
+    box-shadow: 0 0 8px rgba(56, 97, 251, 0.4);
+}
+
+/* Error input style */
+.textInputWrapper input.error {
+    border-color: #de1b55;
+    box-shadow: 0 0 6px rgba(222, 27, 85, 0.4);
 }
 
 .errorMessage {
     color: #de1b55;
-    text-align: center;
-    width: 30%;
+    font-size: 0.9rem;
+    text-align: left;
+    width: 100%;
+    max-width: 400px;
 }

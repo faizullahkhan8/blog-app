@@ -4,32 +4,68 @@ import { submitABlog } from "../../API/internals";
 import { useSelector } from "react-redux";
 import TextInput from "../TextInput/TextInput";
 import { useNavigate } from "react-router-dom";
-import { MdPhotoCamera } from "react-icons/md";
+import { MdPhotoCamera, MdClose, MdUploadFile } from "react-icons/md";
 
 const SubmitBlog = () => {
     const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
     const [photo, setPhoto] = useState("");
-    const [laoding, setLoading] = useState(false);
+    const [photoName, setPhotoName] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
 
     const author = useSelector((state) => state.userSlice._id);
-
     const navigate = useNavigate();
 
-    const getPhoto = (e) => {
-        const file = e.target.files[0];
+    const handleFile = (file) => {
+        if (!file) return;
+
         const reader = new FileReader();
-
         reader.readAsDataURL(file);
+        reader.onloadend = () => {
+            setPhoto(reader.result);
+            setPhotoName(file.name);
+        };
+    };
 
-        reader.onloadend = () => setPhoto(reader.result);
+    const getPhoto = (e) => {
+        handleFile(e.target.files[0]);
+    };
+
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    };
+
+    const removePhoto = () => {
+        setPhoto("");
+        setPhotoName("");
     };
 
     const submitHandler = async () => {
         const data = {
-            title,
+            title: title.trim(),
+            content: content.trim(),
             author,
             photo,
         };
+
+        if (!data.title || !data.photo) return;
 
         try {
             setLoading(true);
@@ -50,47 +86,113 @@ const SubmitBlog = () => {
         }
     };
 
+    const isFormValid = title.trim() && photo;
+
     return (
-        <div className={style.wrapper}>
-            <div className={style.header}> Create a Blog </div>
-            <TextInput
-                type="text"
-                name="title"
-                placeholder="Title..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                style={{ width: "60%" }}
-            />
-            <div className={style.photoPrompt}>
-                <label htmlFor="photo">
-                    <p>Choose a Photo</p>
-                </label>
-                <label htmlFor="photo">
-                    <MdPhotoCamera className={style.icon} />
-                </label>
-                <input
-                    type="file"
-                    name="photo"
-                    accept="image/jpg,image/jpeg,image/png"
-                    onChange={getPhoto}
-                    id="photo"
-                    hidden
-                />
+        <div className={style.container}>
+            <div className={style.header}>
+                <h1>Create New Blog</h1>
+                <p>Share your thoughts with the world</p>
             </div>
 
-            <img
-                src={photo}
-                alt="Selected Avater"
-                className="rounded border-white border my-5"
-                style={{ width: "100px" }}
-            />
-            <button
-                className={style.submit}
-                onClick={submitHandler}
-                disabled={title === "" || photo === ""}
-            >
-                {laoding ? "Submitting..." : "Submit"}
-            </button>
+            <div className={style.form}>
+                <div className={style.inputGroup}>
+                    <label className={style.label}>Blog Title *</label>
+                    <TextInput
+                        type="text"
+                        name="title"
+                        placeholder="Enter an engaging title..."
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className={style.titleInput}
+                    />
+                </div>
+
+                <div className={style.inputGroup}>
+                    <label className={style.label}>Content (Optional)</label>
+                    <textarea
+                        className={style.contentInput}
+                        placeholder="Write your blog content here..."
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        rows={6}
+                    />
+                </div>
+
+                <div className={style.inputGroup}>
+                    <label className={style.label}>Featured Image *</label>
+
+                    {!photo ? (
+                        <div
+                            className={`${style.uploadArea} ${
+                                dragActive ? style.dragActive : ""
+                            }`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                        >
+                            <input
+                                type="file"
+                                id="photo"
+                                name="photo"
+                                accept="image/jpg,image/jpeg,image/png,image/webp"
+                                onChange={getPhoto}
+                                hidden
+                            />
+                            <label
+                                htmlFor="photo"
+                                className={style.uploadLabel}
+                            >
+                                <MdUploadFile className={style.uploadIcon} />
+                                <div className={style.uploadText}>
+                                    <p>Click to upload or drag and drop</p>
+                                    <span>PNG, JPG, JPEG, WEBP (Max 5MB)</span>
+                                </div>
+                            </label>
+                        </div>
+                    ) : (
+                        <div className={style.imagePreview}>
+                            <img
+                                src={photo}
+                                alt="Preview"
+                                className={style.previewImage}
+                            />
+                            <div className={style.imageInfo}>
+                                <span className={style.imageName}>
+                                    {photoName}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={removePhoto}
+                                    className={style.removeBtn}
+                                >
+                                    <MdClose />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className={style.actions}>
+                    <button
+                        type="button"
+                        className={style.cancelBtn}
+                        onClick={() => navigate("/blogs")}
+                        disabled={loading}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className={style.submitBtn}
+                        onClick={submitHandler}
+                        disabled={!isFormValid || loading}
+                    >
+                        {loading ? "Publishing..." : "Publish Blog"}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };
