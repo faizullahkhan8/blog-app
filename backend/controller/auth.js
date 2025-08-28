@@ -84,11 +84,15 @@ const auth = {
             // send tokens via cookies
             res.cookie("accessToken", accessToken, {
                 maxage: 1000 * 60 * 60 * 24,
+                secure: true, // Required for HTTPS (Surge uses HTTPS)
+                sameSite: "none", // Required for cross-origin requests
                 httpOnly: true,
             });
 
             res.cookie("refreshToken", refreshToken, {
                 maxage: 1000 * 60 * 60 * 24,
+                secure: true, // Required for HTTPS (Surge uses HTTPS)
+                sameSite: "none", // Required for cross-origin requests
                 httpOnly: true,
             });
 
@@ -168,11 +172,15 @@ const auth = {
 
             res.cookie("accessToken", accessToken, {
                 maxAge: 1000 * 60 * 60 * 24,
+                secure: true, // Required for HTTPS (Surge uses HTTPS)
+                sameSite: "none", // Required for cross-origin requests
                 httpOnly: true,
             });
 
             res.cookie("refreshToken", refreshToken, {
                 maxAge: 1000 * 60 * 60 * 24,
+                secure: true, // Required for HTTPS (Surge uses HTTPS)
+                sameSite: "none", // Required for cross-origin requests
                 httpOnly: true,
             });
 
@@ -243,11 +251,15 @@ const auth = {
 
             res.cookie("refreshToken", refreshToken, {
                 maxAge: 1000 * 60 * 60 * 24,
+                secure: true, // Required for HTTPS (Surge uses HTTPS)
+                sameSite: "none", // Required for cross-origin requests
                 htttpOnly: true,
             });
 
             res.cookie("accessToken", accessToken, {
                 maxAge: 1000 * 60 * 60 * 24,
+                secure: true, // Required for HTTPS (Surge uses HTTPS)
+                sameSite: "none", // Required for cross-origin requests
                 htttpOnly: true,
             });
         } catch (error) {
