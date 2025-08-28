@@ -5,51 +5,72 @@ import Loader from "../Loader/Loader";
 import Error from "../Error/Error";
 
 const Home = () => {
-    const [ariticals, setAriticals] = useState([]);
+    const [articles, setArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     useEffect(() => {
         (async function newsApiCall() {
-            const response = await getNews();
-            setAriticals(response);
-        })();
+            try {
+                const response = await getNews();
 
-        setAriticals([]);
+                if (Array.isArray(response)) {
+                    setArticles(response);
+                } else {
+                    setError("Unexpected response format");
+                }
+            } catch (err) {
+                setError("Failed to fetch news");
+            } finally {
+                setLoading(false);
+            }
+        })();
     }, []);
 
     const handleCardClick = (url) => {
-        window.open(url, "_blank");
+        if (url) {
+            window.open(url, "_blank");
+        }
     };
 
-    if (ariticals.length === 0) {
-        return <Loader text={"Home Page"} />;
+    if (loading) {
+        return <Loader text="Loading Home Page..." />;
+    }
+
+    if (error) {
+        return <Error message={error} />;
     }
 
     return (
         <>
-            {ariticals.code === "ERR_NETWORK" ? (
-                <Error message={"No Internet Connection"} />
-            ) : (
-                <>
-                    <div className={style.header}>Lastest Articles</div>
-                    <div className={style.grid}>
-                        {ariticals.length > 0 &&
-                            ariticals.map((aritical) => {
-                                return (
-                                    <div
-                                        className={style.card}
-                                        key={aritical.url}
-                                        onClick={() =>
-                                            handleCardClick(aritical.url)
-                                        }
-                                    >
-                                        <img src={aritical.urlToImage} />
-                                        <h3>{aritical.title}</h3>
-                                    </div>
-                                );
-                            })}
-                    </div>
-                </>
-            )}
+            <div className={style.header}>Latest Articles</div>
+            <div className={style.grid}>
+                {articles.length > 0 ? (
+                    articles.map((article) => (
+                        <div
+                            className={style.card}
+                            key={article.article_id}
+                            onClick={() => handleCardClick(article.url)}
+                        >
+                            <img
+                                src={
+                                    article.thumbnail ||
+                                    "https://via.placeholder.com/300x200?text=No+Image"
+                                }
+                                alt={article.title || "Article Image"}
+                            />
+                            <h3>{article.title || "No Title Available"}</h3>
+                            <p className={style.source}>
+                                {article.source?.name || "Unknown Source"}
+                            </p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No articles available.</p>
+                )}
+            </div>
         </>
     );
 };
+
 export default Home;

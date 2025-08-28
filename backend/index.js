@@ -12,15 +12,13 @@ app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(
     cors({
-        origin: "https://blogbook.surge.sh",
+        origin: "*",
         methods: ["GET", "POST", "DELETE", "PUT"],
         credentials: true,
     })
 );
 
 app.use(router);
-
-app.use("/storage", express.static("storage"));
 
 app.use(errorHandler);
 

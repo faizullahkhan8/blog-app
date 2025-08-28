@@ -9,6 +9,7 @@ import { MdPhotoCamera } from "react-icons/md";
 const SubmitBlog = () => {
     const [title, setTitle] = useState("");
     const [photo, setPhoto] = useState("");
+    const [laoding, setLoading] = useState(false);
 
     const author = useSelector((state) => state.userSlice._id);
 
@@ -30,12 +31,22 @@ const SubmitBlog = () => {
             photo,
         };
 
-        const response = await submitABlog(data);
+        try {
+            setLoading(true);
+            const response = await submitABlog(data);
 
-        if (response.status === 201) {
-            navigate("/blogs");
-        } else if (response.code === "ERR_BAD_REQUST") {
-            alert("somethings went wrong please try again");
+            if (response?.status === 201) {
+                navigate("/blogs");
+            } else if (response?.code === "ERR_BAD_REQUEST") {
+                alert("Something went wrong, please try again.");
+            } else {
+                alert("Unexpected error, please try again.");
+            }
+        } catch (error) {
+            console.error("Error submitting blog:", error);
+            alert("An error occurred. Please try again later.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -78,7 +89,7 @@ const SubmitBlog = () => {
                 onClick={submitHandler}
                 disabled={title === "" || photo === ""}
             >
-                Submit
+                {laoding ? "Submitting..." : "Submit"}
             </button>
         </div>
     );

@@ -24,7 +24,7 @@ const Navbar = () => {
     return (
         <>
             <nav className={style.navbar}>
-                <NavLink className={style.logo}>Coin-Bounce</NavLink>
+                <NavLink className={style.logo}>BlogBook</NavLink>
 
                 <NavLink
                     to="/"
