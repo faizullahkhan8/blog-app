@@ -12,7 +12,11 @@ app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(
     cors({
-        origin: ["http://localhost:3000", "https://blogbook.surge.sh"],
+        origin: [
+            "http://localhost:3000",
+            "https://blogbook.surge.sh",
+            "https://blogbook-sigma.vercel.app/",
+        ],
         methods: ["GET", "POST", "DELETE", "PUT"],
         credentials: true,
     })

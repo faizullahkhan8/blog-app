@@ -11,9 +11,9 @@ const api = axios.create({
 
 // Cache configuration - shorter durations for dynamic content
 const CACHE_DURATION = {
-    BLOGS: 2 * 60 * 1000, // 2 minutes for blogs list
-    BLOG_DETAIL: 5 * 60 * 1000, // 5 minutes for individual blog
-    COMMENTS: 1 * 60 * 1000, // 1 minute for comments (more dynamic)
+    BLOGS: 10 * 60 * 1000, // 10 minutes for blogs list
+    BLOG_DETAIL: 10 * 60 * 1000, // 10 minutes for individual blog
+    COMMENTS: 10 * 60 * 1000, // 10 minutes for comments (more dynamic)
 };
 
 // Cache storage
