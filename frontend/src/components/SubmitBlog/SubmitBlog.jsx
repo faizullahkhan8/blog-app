@@ -76,7 +76,7 @@ const SubmitBlog = () => {
             } else if (response?.code === "ERR_BAD_REQUEST") {
                 alert("Something went wrong, please try again.");
             } else {
-                alert("Unexpected error, please try again.");
+                console.log(response);
             }
         } catch (error) {
             console.error("Error submitting blog:", error);
