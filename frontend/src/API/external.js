@@ -9,7 +9,7 @@ const CRYPTO_API_END_POINT =
 // Cache configuration
 const CACHE_DURATION = {
     NEWS: 10 * 60 * 1000, // 10 minutes for news
-    CRYPTO: 5 * 60 * 1000, // 5 minutes for crypto (more volatile)
+    CRYPTO: 10 * 60 * 1000, // 10 minutes for crypto
 };
 
 // Simple cache implementation
