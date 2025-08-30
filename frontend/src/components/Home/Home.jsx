@@ -1,51 +1,13 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { getNews } from "../../API/external";
+import { useState, useCallback } from "react";
 import style from "./style.module.css";
 import Loader from "../Loader/Loader";
 import Error from "../Error/Error";
+import { useGetCryptoNews } from "../../Hooks/ReactQueryHooks";
 
 const Home = () => {
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [imageErrors, setImageErrors] = useState(new Set());
 
-    useEffect(() => {
-        let isMounted = true; // Prevent state updates if component unmounts
-
-        (async function newsApiCall() {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await getNews();
-
-                if (!isMounted) return; // Don't update if component unmounted
-
-                if (Array.isArray(response)) {
-                    // Filter out articles without essential data
-                    const validArticles = response.filter(
-                        (article) => article && (article.title || article.url)
-                    );
-                    setArticles(validArticles);
-                } else {
-                    setError("Unexpected response format");
-                }
-            } catch (err) {
-                if (isMounted) {
-                    console.error("Failed to fetch news:", err);
-                    setError("Failed to fetch news. Please try again later.");
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
-        })();
-
-        return () => {
-            isMounted = false; // Cleanup flag
-        };
-    }, []);
+    const { data, isLoading, isError } = useGetCryptoNews();
 
     const handleCardClick = useCallback(
         (url, event) => {
@@ -76,14 +38,14 @@ const Home = () => {
         });
     }, []);
 
-    if (loading) {
+    if (isLoading) {
         return <Loader text="Loading Latest Articles..." />;
     }
 
-    if (error) {
+    if (isError) {
         return (
             <div className={style.container}>
-                <Error message={error} />
+                <Error message={isError} />
                 <button
                     className={style.retryButton}
                     onClick={() => window.location.reload()}
@@ -103,9 +65,9 @@ const Home = () => {
                 </p>
             </header>
 
-            {articles.length > 0 ? (
+            {data?.results.length > 0 ? (
                 <section className={style.grid} role="main">
-                    {articles.map((article, index) => (
+                    {data?.results.map((article, index) => (
                         <article
                             className={style.card}
                             key={article.article_id || `article-${index}`}

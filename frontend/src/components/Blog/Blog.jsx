@@ -1,37 +1,22 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { getAllBlogs, likeABlog } from "../../API/internals";
+import { likeABlog } from "../../API/internals";
 import { useNavigate } from "react-router-dom";
 import { MdThumbUp, MdComment, MdShare, MdPerson } from "react-icons/md";
 import { useSelector } from "react-redux";
 import style from "./style.module.css";
+import { useGetAllBlogs } from "../../Hooks/ReactQueryHooks";
 
 const Blog = () => {
     const navigate = useNavigate();
     const [blogs, setBlogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const userId = useSelector((state) => state.userSlice._id);
-
-    const fetchBlogs = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await getAllBlogs();
-            if (response?.data?.blogsDTO) {
-                setBlogs(response.data.blogsDTO);
-            } else {
-                setError("Failed to load blogs");
-            }
-        } catch (err) {
-            setError("Unable to load blogs");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const { data, isLoading: loading, isError: error } = useGetAllBlogs();
 
     useEffect(() => {
-        fetchBlogs();
-    }, [fetchBlogs]);
+        if (data) {
+            setBlogs(data.blogsDTO);
+        }
+    }, [data]);
 
     const handleLike = useCallback(
         async (blog) => {
@@ -40,15 +25,15 @@ const Blog = () => {
             const blogId = blog.id;
 
             setBlogs((prev) =>
-                prev.map((b) =>
-                    b.id === blogId
+                prev.map((blog) =>
+                    blog.id === blogId
                         ? {
-                              ...b,
+                              ...blog,
                               likes: isLiked
-                                  ? b.likes.filter((id) => id !== userId)
-                                  : [...b.likes, userId],
+                                  ? blog.likes.filter((id) => id !== userId)
+                                  : [...blog.likes, userId],
                           }
-                        : b
+                        : blog
                 )
             );
 
@@ -56,15 +41,17 @@ const Blog = () => {
                 await likeABlog({ userId, blogId });
             } catch (error) {
                 setBlogs((prev) =>
-                    prev.map((b) =>
-                        b.id === blogId
+                    prev.map((blog) =>
+                        blog.id === blogId
                             ? {
-                                  ...b,
+                                  ...blog,
                                   likes: isLiked
-                                      ? [...b.likes, userId]
-                                      : b.likes.filter((id) => id !== userId),
+                                      ? [...blog.likes, userId]
+                                      : blog.likes.filter(
+                                            (id) => id !== userId
+                                        ),
                               }
-                            : b
+                            : blog
                     )
                 );
             }

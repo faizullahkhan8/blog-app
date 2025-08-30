@@ -4,22 +4,47 @@ import { submitABlog } from "../../API/internals";
 import { useSelector } from "react-redux";
 import TextInput from "../TextInput/TextInput";
 import { useNavigate } from "react-router-dom";
-import { MdPhotoCamera, MdClose, MdUploadFile } from "react-icons/md";
+import { MdClose, MdUploadFile } from "react-icons/md";
+import toast from "react-hot-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const SubmitBlog = () => {
     const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
     const [photo, setPhoto] = useState("");
     const [photoName, setPhotoName] = useState("");
-    const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
 
     const author = useSelector((state) => state.userSlice._id);
     const navigate = useNavigate();
 
+    const queryClient = useQueryClient();
+
+    // --- React Query Mutation ---
+    const { mutate, isPending } = useMutation({
+        mutationFn: async (data) => await submitABlog(data),
+        onSuccess: (response) => {
+            if (response?.status === 201) {
+                toast.success("Blog published successfully!");
+                queryClient.invalidateQueries(["blogs"]);
+                navigate("/blogs");
+            } else {
+                toast.error(
+                    response?.data?.message || "Failed to publish blog"
+                );
+            }
+        },
+        onError: (error) => {
+            console.error("Error submitting blog:", error);
+            toast.error(
+                error?.response?.data?.message ||
+                    "An error occurred. Please try again."
+            );
+        },
+    });
+
+    // --- File Handling ---
     const handleFile = (file) => {
         if (!file) return;
-
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onloadend = () => {
@@ -28,9 +53,7 @@ const SubmitBlog = () => {
         };
     };
 
-    const getPhoto = (e) => {
-        handleFile(e.target.files[0]);
-    };
+    const getPhoto = (e) => handleFile(e.target.files[0]);
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -57,33 +80,20 @@ const SubmitBlog = () => {
         setPhotoName("");
     };
 
-    const submitHandler = async () => {
+    // --- Submit Handler ---
+    const submitHandler = () => {
         const data = {
             title: title.trim(),
-            content: content.trim(),
             author,
             photo,
         };
 
-        if (!data.title || !data.photo) return;
-
-        try {
-            setLoading(true);
-            const response = await submitABlog(data);
-
-            if (response?.status === 201) {
-                navigate("/blogs");
-            } else if (response?.code === "ERR_BAD_REQUEST") {
-                alert("Something went wrong, please try again.");
-            } else {
-                console.log(response);
-            }
-        } catch (error) {
-            console.error("Error submitting blog:", error);
-            alert("An error occurred. Please try again later.");
-        } finally {
-            setLoading(false);
+        if (!data.title || !data.photo) {
+            toast.error("Title and image are required.");
+            return;
         }
+
+        mutate(data); // React Query handles loading + errors
     };
 
     const isFormValid = title.trim() && photo;
@@ -109,19 +119,7 @@ const SubmitBlog = () => {
                 </div>
 
                 <div className={style.inputGroup}>
-                    <label className={style.label}>Content (Optional)</label>
-                    <textarea
-                        className={style.contentInput}
-                        placeholder="Write your blog content here..."
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        rows={6}
-                    />
-                </div>
-
-                <div className={style.inputGroup}>
                     <label className={style.label}>Featured Image *</label>
-
                     {!photo ? (
                         <div
                             className={`${style.uploadArea} ${
@@ -179,7 +177,7 @@ const SubmitBlog = () => {
                         type="button"
                         className={style.cancelBtn}
                         onClick={() => navigate("/blogs")}
-                        disabled={loading}
+                        disabled={isPending}
                     >
                         Cancel
                     </button>
@@ -187,9 +185,9 @@ const SubmitBlog = () => {
                         type="button"
                         className={style.submitBtn}
                         onClick={submitHandler}
-                        disabled={!isFormValid || loading}
+                        disabled={!isFormValid || isPending}
                     >
-                        {loading ? "Publishing..." : "Publish Blog"}
+                        {isPending ? "Publishing..." : "Publish Blog"}
                     </button>
                 </div>
             </div>

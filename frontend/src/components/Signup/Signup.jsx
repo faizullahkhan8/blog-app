@@ -35,6 +35,12 @@ const Signup = () => {
                         auth: response.data.auth,
                     })
                 );
+
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify(response.data.user)
+                );
+
                 navigate("/");
             }
         } catch (err) {

@@ -1,0 +1,168 @@
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(
+        135deg,
+        rgba(15, 15, 15, 0.95),
+        rgba(30, 30, 30, 0.95)
+    );
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3861fb, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.brand:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 4px 8px rgba(56, 97, 251, 0.3));
+}
+
+.brand:hover .logo {
+    transform: rotate(5deg);
+    box-shadow: 0 6px 16px rgba(56, 97, 251, 0.5);
+}
+
+.copyright {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.year {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+.tagline {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.socialLinks {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.socialLink {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.socialLink:hover {
+    background: rgba(56, 97, 251, 0.2);
+    border-color: #3861fb;
+    color: #3861fb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(56, 97, 251, 0.2);
+}
+
+@keyframes shimmer {
+    0% {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer {
+        padding: 1.5rem 1rem;
+    }
+
+    .brand {
+        font-size: 1.3rem;
+    }
+
+    .socialLinks {
+        gap: 0.8rem;
+    }
+
+    .socialLink {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        gap: 0.8rem;
+    }
+
+    .brand {
+        font-size: 1.2rem;
+        gap: 0.6rem;
+    }
+
+    .logo {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+
+    .copyright {
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    .tagline {
+        font-size: 0.8rem;
+        text-align: center;
+    }
+}

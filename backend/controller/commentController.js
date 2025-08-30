@@ -69,9 +69,7 @@ const commentController = {
             commentDTO[index] = new CommentDTO(element);
         });
 
-        return res
-            .status(200)
-            .json({ length: commentDTO.length, data: commentDTO });
+        return res.status(200).json(commentDTO);
     },
 
     async reactABlog(req, res, next) {

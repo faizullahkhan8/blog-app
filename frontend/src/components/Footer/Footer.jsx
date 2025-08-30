@@ -1,242 +1,46 @@
-import React from "react";
+import styles from "./style.module.css";
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
         <>
-            <style jsx>{`
-                .footer {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 2rem 1rem;
-                    background: linear-gradient(
-                        135deg,
-                        rgba(15, 15, 15, 0.95),
-                        rgba(30, 30, 30, 0.95)
-                    );
-                    backdrop-filter: blur(10px);
-                    border-top: 1px solid rgba(255, 255, 255, 0.1);
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .footer::before {
-                    content: "";
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 1px;
-                    background: linear-gradient(
-                        90deg,
-                        transparent,
-                        #3861fb,
-                        #00d4ff,
-                        transparent
-                    );
-                    animation: shimmer 3s ease-in-out infinite;
-                }
-
-                .content {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 1rem;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .brand {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    background: linear-gradient(135deg, #3861fb, #00d4ff);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    transition: all 0.3s ease;
-                }
-
-                .brand:hover {
-                    transform: scale(1.05);
-                    filter: drop-shadow(0 4px 8px rgba(56, 97, 251, 0.3));
-                }
-
-                .logo {
-                    width: 32px;
-                    height: 32px;
-                    background: linear-gradient(135deg, #3861fb, #00d4ff);
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-weight: bold;
-                    font-size: 1.2rem;
-                    box-shadow: 0 4px 12px rgba(56, 97, 251, 0.3);
-                    transition: all 0.3s ease;
-                }
-
-                .brand:hover .logo {
-                    transform: rotate(5deg);
-                    box-shadow: 0 6px 16px rgba(56, 97, 251, 0.5);
-                }
-
-                .copyright {
-                    color: rgba(255, 255, 255, 0.6);
-                    font-size: 0.95rem;
-                    font-weight: 500;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-
-                .year {
-                    color: rgba(255, 255, 255, 0.8);
-                    font-weight: 600;
-                }
-
-                .tagline {
-                    color: rgba(255, 255, 255, 0.5);
-                    font-size: 0.85rem;
-                    font-style: italic;
-                    margin-top: 0.5rem;
-                }
-
-                .socialLinks {
-                    display: flex;
-                    gap: 1rem;
-                    margin-top: 0.5rem;
-                }
-
-                .socialLink {
-                    width: 40px;
-                    height: 40px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: rgba(255, 255, 255, 0.7);
-                    text-decoration: none;
-                    transition: all 0.3s ease;
-                    backdrop-filter: blur(5px);
-                }
-
-                .socialLink:hover {
-                    background: rgba(56, 97, 251, 0.2);
-                    border-color: #3861fb;
-                    color: #3861fb;
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(56, 97, 251, 0.2);
-                }
-
-                @keyframes shimmer {
-                    0% {
-                        opacity: 0;
-                        transform: translateX(-100%);
-                    }
-                    50% {
-                        opacity: 1;
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: translateX(100%);
-                    }
-                }
-
-                @keyframes pulse {
-                    0%,
-                    100% {
-                        opacity: 1;
-                    }
-                    50% {
-                        opacity: 0.7;
-                    }
-                }
-
-                /* Responsive Design */
-                @media (max-width: 768px) {
-                    .footer {
-                        padding: 1.5rem 1rem;
-                    }
-
-                    .brand {
-                        font-size: 1.3rem;
-                    }
-
-                    .socialLinks {
-                        gap: 0.8rem;
-                    }
-
-                    .socialLink {
-                        width: 36px;
-                        height: 36px;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .content {
-                        gap: 0.8rem;
-                    }
-
-                    .brand {
-                        font-size: 1.2rem;
-                        gap: 0.6rem;
-                    }
-
-                    .logo {
-                        width: 28px;
-                        height: 28px;
-                        font-size: 1rem;
-                    }
-
-                    .copyright {
-                        font-size: 0.9rem;
-                        text-align: center;
-                    }
-
-                    .tagline {
-                        font-size: 0.8rem;
-                        text-align: center;
-                    }
-                }
-            `}</style>
-
-            <footer className="footer">
-                <div className="content">
-                    <div className="brand">
-                        <div className="logo">B</div>
+            <footer className={styles.footer}>
+                <div className={styles.content}>
+                    <div className={styles.brand}>
                         <span>blogbook</span>
                     </div>
 
-                    <div className="copyright">
+                    <div className={styles.copyright}>
                         <span>&copy;</span>
-                        <span className="year">{currentYear}</span>
+                        <span className={styles.year}>{currentYear}</span>
                         <span>blogbook. All rights reserved.</span>
                     </div>
 
-                    <div className="tagline">
-                        Share your stories with the world
+                    <div className={styles.tagline}>
+                        Know about the developer
                     </div>
 
-                    <div className="socialLinks">
-                        <a href="#" className="socialLink" title="Twitter">
+                    <div className={styles.socialLinks}>
+                        <a
+                            href="mailto:faizullahofficial0@gmail.com"
+                            className={styles.socialLink}
+                            title="email"
+                        >
                             <svg
                                 width="18"
                                 height="18"
                                 viewBox="0 0 24 24"
                                 fill="currentColor"
                             >
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                <path d="M12 13.5l8-5.5H4l8 5.5zm0 2.5l-8-5.5v7l8 5.5 8-5.5v-7l-8 5.5z" />
                             </svg>
                         </a>
-                        <a href="#" className="socialLink" title="GitHub">
+                        <a
+                            href="http://github.com/faizullahkhan8"
+                            className={styles.socialLink}
+                            title="GitHub"
+                        >
                             <svg
                                 width="18"
                                 height="18"
@@ -246,7 +50,13 @@ const Footer = () => {
                                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                             </svg>
                         </a>
-                        <a href="#" className="socialLink" title="LinkedIn">
+                        <a
+                            href="http://linkedin.com/in/faizullahkhan8"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.socialLink}
+                            title="LinkedIn"
+                        >
                             <svg
                                 width="18"
                                 height="18"
@@ -257,6 +67,21 @@ const Footer = () => {
                             </svg>
                         </a>
                     </div>
+                    <p>
+                        Made with ❤️ by{" "}
+                        <a
+                            href="https://faizullah-portfolio.surge.sh/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                color: "#fff",
+                                fontWeight: "600",
+                                textDecoration: "underline",
+                            }}
+                        >
+                            Faiz Ullah Khan
+                        </a>
+                    </p>
                 </div>
             </footer>
         </>

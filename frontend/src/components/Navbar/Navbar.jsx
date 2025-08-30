@@ -1,17 +1,19 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { logOut } from "../../API/internals";
-import { resetUser } from "../../store/userSlice";
+import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 import { useState, useEffect } from "react";
 import { MdMenu, MdClose } from "react-icons/md";
 import style from "./Navbar.module.css";
+import { useLogout } from "../../Hooks/ReactQueryHooks";
+
+import { MutatingDots } from "react-loader-spinner";
 
 const Navbar = () => {
     const isAuth = useSelector((state) => state.userSlice.auth);
     const username = useSelector((state) => state.userSlice.username);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const { mutate, isPending } = useLogout();
 
     // Prevent body scroll when menu is open
     useEffect(() => {
@@ -45,16 +47,7 @@ const Navbar = () => {
     }, [isMenuOpen]);
 
     const handleSignOut = async () => {
-        try {
-            const response = await logOut();
-            if (response.status === 200) {
-                dispatch(resetUser());
-                navigate("/logIn");
-                setIsMenuOpen(false);
-            }
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
+        mutate();
     };
 
     const toggleMenu = () => {
@@ -122,13 +115,24 @@ const Navbar = () => {
                         {isAuth ? (
                             <div className={style.userSection}>
                                 <span className={style.welcomeText}>
-                                    Hi, {username}
+                                    {username[0]}
                                 </span>
                                 <button
                                     className={style.signOutButton}
                                     onClick={handleSignOut}
                                 >
-                                    Sign Out
+                                    {isPending ? (
+                                        <MutatingDots
+                                            height="30"
+                                            width="30"
+                                            color="#4fa94d"
+                                            secondaryColor="#4fa94d"
+                                            radius="12.5"
+                                            ariaLabel="mutating-dots-loading"
+                                        />
+                                    ) : (
+                                        "Sign Out"
+                                    )}
                                 </button>
                             </div>
                         ) : (

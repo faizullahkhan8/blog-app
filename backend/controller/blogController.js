@@ -82,7 +82,7 @@ const blogController = {
             const singleBlogDTO = new blogDetailDTO(blog);
 
             // send response
-            return res.status(200).json({ singleBlogDTO });
+            return res.status(200).json(singleBlogDTO);
         } catch (error) {
             return next(error);
         }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -12,16 +12,14 @@ import {
     MdBookmark,
     MdBookmarkBorder,
 } from "react-icons/md";
+import toast from "react-hot-toast";
 
-import {
-    getCommentsById,
-    postComment,
-    BlogById,
-    deleteBlog,
-} from "../../API/internals";
-
-import CommentList from "../CommentList/CommentList";
 import style from "./style.module.css";
+import CommentList from "../CommentList/CommentList";
+
+import { useGetBlog, useGetComments } from "../../Hooks/ReactQueryHooks";
+import { postComment, deleteBlog } from "../../API/internals";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const BlogDetail = () => {
     const navigate = useNavigate();
@@ -30,17 +28,29 @@ const BlogDetail = () => {
     const username = useSelector((state) => state.userSlice.username);
     const userId = useSelector((state) => state.userSlice._id);
 
-    const [blog, setBlog] = useState(null);
-    const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
-    const [isBlogOwner, setIsBlogOwner] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [commentLoading, setCommentLoading] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    // Memoize formatted date
+    const queryClient = useQueryClient();
+
+    // Fetch blog and comments via React Query
+    const {
+        data: blog,
+        isLoading: blogLoading,
+        error: blogError,
+    } = useGetBlog(blogId);
+
+    const {
+        data: comments = [],
+        isLoading: commentsLoading,
+        error: commentsError,
+    } = useGetComments(blogId);
+
+    // Check ownership
+    const isBlogOwner = username && blog?.authorUserName === username;
+
+    // Format date
     const formattedDate = useMemo(() => {
         if (!blog?.createdAt) return "";
         return new Date(blog.createdAt).toLocaleDateString("en-US", {
@@ -52,117 +62,63 @@ const BlogDetail = () => {
         });
     }, [blog?.createdAt]);
 
-    // Fetch blog and comments data
-    const fetchData = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
+    // Delete blog mutation
+    const deleteMutation = useMutation({
+        mutationFn: () => deleteBlog(blogId),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["blogs"]);
+            toast.success("Blog deleted successfully");
+            navigate("/blogs");
+        },
+        onError: () => {
+            toast.error("Failed to delete blog");
+        },
+    });
 
-            const [blogRes, commentsRes] = await Promise.all([
-                BlogById(blogId),
-                getCommentsById(blogId),
+    // Post comment mutation with optimistic update
+    const commentMutation = useMutation({
+        mutationFn: (content) =>
+            postComment({ author: userId, blogId, content }),
+        onMutate: async (content) => {
+            await queryClient.cancelQueries(["comments", blogId]);
+
+            const previousComments = queryClient.getQueryData([
+                "comments",
+                blogId,
             ]);
 
-            if (blogRes.status === 200) {
-                setBlog(blogRes.data.singleBlogDTO);
-                setIsBlogOwner(
-                    username === blogRes.data.singleBlogDTO.authorUserName
-                );
-            } else {
-                setError("Blog not found");
-            }
+            const tempComment = {
+                _id: `temp-${Date.now()}`,
+                author: username,
+                content,
+                createdAt: new Date().toISOString(),
+                isTemp: true,
+            };
 
-            if (commentsRes.status === 200) {
-                setComments(commentsRes.data.data || []);
-            }
-        } catch (err) {
-            console.error("Error fetching blog or comments", err);
-            setError("Failed to load blog content");
-        } finally {
-            setLoading(false);
-        }
-    }, [blogId, username]);
+            queryClient.setQueryData(["comments", blogId], (old = []) => [
+                tempComment,
+                ...old,
+            ]);
 
-    useEffect(() => {
-        fetchData();
-        return () => {
-            setBlog(null);
-            setComments([]);
-            setError(null);
-        };
-    }, [fetchData]);
-
-    // Delete blog handler with confirmation
-    const blogDeleteHandler = useCallback(async () => {
-        try {
-            const response = await deleteBlog(blogId);
-            if (response.status === 200) {
-                navigate("/blogs", {
-                    state: { message: "Blog deleted successfully" },
-                });
-            }
-        } catch (err) {
-            console.error("Delete failed", err);
-            setError("Failed to delete blog");
-        }
-    }, [blogId, navigate]);
-
-    // Post comment handler with optimistic updates
-    const postCommentHandler = useCallback(async () => {
-        if (!newComment.trim() || commentLoading) return;
-
-        const tempComment = {
-            _id: `temp-${Date.now()}`,
-            author: username,
-            content: newComment.trim(),
-            createdAt: new Date().toISOString(),
-            isTemp: true,
-        };
-
-        try {
-            setCommentLoading(true);
-
-            // Optimistic update
-            setComments((prev) => [tempComment, ...prev]);
-            setNewComment("");
-
-            const response = await postComment({
-                author: userId,
-                blogId,
-                content: newComment.trim(),
-            });
-
-            if (response.status === 201) {
-                // Remove temp comment and add real one
-                setComments((prev) =>
-                    prev.filter((c) => c._id !== tempComment._id)
-                );
-                // Refresh comments to get the real data
-                const commentsRes = await getCommentsById(blogId);
-                if (commentsRes.status === 200) {
-                    setComments(commentsRes.data.data || []);
-                }
-            } else {
-                throw new Error("Failed to post comment");
-            }
-        } catch (err) {
-            console.error("Comment post failed", err);
-            // Revert optimistic update
-            setComments((prev) =>
-                prev.filter((c) => c._id !== tempComment._id)
+            return { previousComments };
+        },
+        onError: (_err, _newComment, context) => {
+            queryClient.setQueryData(
+                ["comments", blogId],
+                context.previousComments
             );
-            setNewComment(tempComment.content); // Restore the comment text
-            setError("Failed to post comment. Please try again.");
-        } finally {
-            setCommentLoading(false);
-        }
-    }, [newComment, commentLoading, username, userId, blogId]);
+            toast.error("Failed to post comment. Please try again.");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries(["comments", blogId]);
+        },
+    });
 
     // Share functionality
     const handleShare = useCallback(async () => {
         const shareData = {
-            title: blog.title,
-            text: `Check out this blog by @${blog.authorUserName}`,
+            title: blog?.title,
+            text: `Check out this blog by @${blog?.authorUserName}`,
             url: window.location.href,
         };
 
@@ -171,18 +127,17 @@ const BlogDetail = () => {
                 await navigator.share(shareData);
             } else {
                 await navigator.clipboard.writeText(window.location.href);
-                // You could show a toast notification here
-                alert("Link copied to clipboard!");
+                toast.success("Link copied to clipboard!");
             }
         } catch (error) {
-            console.error("Error sharing:", error);
+            toast.error("Error sharing: " + error.message);
         }
     }, [blog]);
 
     // Toggle bookmark
     const toggleBookmark = useCallback(() => {
         setIsBookmarked((prev) => !prev);
-        // Here you would typically make an API call to save/remove bookmark
+        // API call can be added here
     }, []);
 
     // Handle Enter key press in comment input
@@ -190,14 +145,17 @@ const BlogDetail = () => {
         (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                postCommentHandler();
+                if (newComment.trim()) {
+                    commentMutation.mutate(newComment.trim());
+                    setNewComment("");
+                }
             }
         },
-        [postCommentHandler]
+        [newComment, commentMutation]
     );
 
     // Loading state
-    if (loading) {
+    if (blogLoading || commentsLoading) {
         return (
             <div className={style.container}>
                 <div className={style.loadingContainer}>
@@ -215,16 +173,15 @@ const BlogDetail = () => {
     }
 
     // Error state
-    if (error && !blog) {
+    if (blogError || commentsError) {
         return (
             <div className={style.container}>
                 <div className={style.errorContainer}>
                     <h2 className={style.errorTitle}>Something went wrong</h2>
-                    <p className={style.errorMessage}>{error}</p>
+                    <p className={style.errorMessage}>
+                        {blogError?.message || commentsError?.message}
+                    </p>
                     <div className={style.errorActions}>
-                        <button className={style.retryBtn} onClick={fetchData}>
-                            Try Again
-                        </button>
                         <button
                             className={style.backBtn}
                             onClick={() => navigate("/blogs")}
@@ -359,10 +316,20 @@ const BlogDetail = () => {
                             </span>
                             <button
                                 className={style.postCommentBtn}
-                                onClick={postCommentHandler}
-                                disabled={!newComment.trim() || commentLoading}
+                                onClick={() => {
+                                    if (newComment.trim()) {
+                                        commentMutation.mutate(
+                                            newComment.trim()
+                                        );
+                                        setNewComment("");
+                                    }
+                                }}
+                                disabled={
+                                    !newComment.trim() ||
+                                    commentMutation.isLoading
+                                }
                             >
-                                {commentLoading ? (
+                                {commentMutation.isLoading ? (
                                     <span>Posting...</span>
                                 ) : (
                                     <>
@@ -410,21 +377,13 @@ const BlogDetail = () => {
                                 className={style.confirmDeleteBtn}
                                 onClick={() => {
                                     setShowDeleteConfirm(false);
-                                    blogDeleteHandler();
+                                    deleteMutation.mutate();
                                 }}
                             >
                                 Delete
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Error Toast */}
-            {error && (
-                <div className={style.errorToast}>
-                    <p>{error}</p>
-                    <button onClick={() => setError(null)}>×</button>
                 </div>
             )}
         </div>

@@ -9,7 +9,6 @@
 .textInputWrapper input {
     padding: 12px 16px;
     width: 100%;
-    max-width: 400px; /* keeps consistent size */
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.05);
